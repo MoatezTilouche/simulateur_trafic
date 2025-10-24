@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>core.simulateur &#8212; simulateur_trafic  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for core.simulateur</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReseauRoutier</span><span class="p">,</span> <span class="n">Route</span><span class="p">,</span> <span class="n">Vehicule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core.analyseur</span><span class="w"> </span><span class="kn">import</span> <span class="n">Analyseur</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io_pkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">Affichage</span><span class="p">,</span> <span class="n">Export</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+
+<div class="viewcode-block" id="Simulateur">
+<a class="viewcode-back" href="../../modules.html#core.simulateur.Simulateur">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Simulateur</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simulateur principal.</span>
+
+<span class="sd">    Gère le réseau routier, l&#39;avancement du temps, l&#39;analyse et l&#39;export des</span>
+<span class="sd">    résultats. Charge une configuration JSON décrivant les routes et</span>
+<span class="sd">    véhicules.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fichier_config</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise le simulateur à partir d&#39;un fichier de configuration.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fichier_config (str): chemin vers un fichier JSON contenant</span>
+<span class="sd">                les routes et véhicules à instancier.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reseau</span> <span class="o">=</span> <span class="n">ReseauRoutier</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temps</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analyseur</span> <span class="o">=</span> <span class="n">Analyseur</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">affichage</span> <span class="o">=</span> <span class="n">Affichage</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exporteur</span> <span class="o">=</span> <span class="n">Export</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">historique</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Charger configuration</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fichier_config</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;routes&quot;</span><span class="p">]:</span>
+            <span class="n">route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;nom&quot;</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;longueur&quot;</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;limite_vitesse&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reseau</span><span class="o">.</span><span class="n">ajouter_route</span><span class="p">(</span><span class="n">route</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;vehicules&quot;</span><span class="p">]:</span>
+            <span class="n">route</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reseau</span><span class="o">.</span><span class="n">get_route</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">])</span>
+            <span class="n">vehicule</span> <span class="o">=</span> <span class="n">Vehicule</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">route</span><span class="p">,</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="s2">&quot;vitesse&quot;</span><span class="p">])</span>
+            <span class="n">route</span><span class="o">.</span><span class="n">ajouter_vehicule</span><span class="p">(</span><span class="n">vehicule</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Simulateur.lancer_simulation">
+<a class="viewcode-back" href="../../modules.html#core.simulateur.Simulateur.lancer_simulation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lancer_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_tours</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Exécute la simulation pendant `n_tours` incréments de `delta_t`.</span>
+
+<span class="sd">        À chaque tour:</span>
+<span class="sd">        - avance le temps</span>
+<span class="sd">        - met à jour les véhicules sur chaque route</span>
+<span class="sd">        - calcule des statistiques via l&#39;analyseur</span>
+<span class="sd">        - affiche l&#39;état</span>
+<span class="sd">        - enregistre un snapshot des positions dans l&#39;historique</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n_tours (int): nombre de pas de simulation à exécuter.</span>
+<span class="sd">            delta_t (float): durée (en secondes) d&#39;un pas de simulation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_tours</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">temps</span> <span class="o">+=</span> <span class="n">delta_t</span>
+            <span class="k">for</span> <span class="n">route</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reseau</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">route</span><span class="o">.</span><span class="n">mettre_a_jour_vehicules</span><span class="p">(</span><span class="n">delta_t</span><span class="p">)</span>
+
+            <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyseur</span><span class="o">.</span><span class="n">analyser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reseau</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">affichage</span><span class="o">.</span><span class="n">afficher_etat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reseau</span><span class="p">,</span> <span class="n">stats</span><span class="p">)</span>
+
+            <span class="n">snapshot</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;temps&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">temps</span><span class="p">,</span> <span class="s2">&quot;positions&quot;</span><span class="p">:</span> <span class="p">{}}</span>
+            <span class="k">for</span> <span class="n">route</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reseau</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">route</span><span class="o">.</span><span class="n">vehicules</span><span class="p">:</span>
+                    <span class="n">snapshot</span><span class="p">[</span><span class="s2">&quot;positions&quot;</span><span class="p">][</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">position</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">historique</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snapshot</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">exporteur</span><span class="o">.</span><span class="n">exporter_resultats</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="s2">&quot;data/resultats.json&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Simulateur.tracer_positions">
+<a class="viewcode-back" href="../../modules.html#core.simulateur.Simulateur.tracer_positions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tracer_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Exporte les positions des véhicules au format CSV.</span>
+
+<span class="sd">        Le fichier produit contient une colonne &#39;temps&#39; suivie d&#39;une colonne par</span>
+<span class="sd">        véhicule (identifiée par son id). Ce jeu de données peut ensuite être</span>
+<span class="sd">        visualisé avec l&#39;outil de votre choix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Export position time-series to CSV using the standard library so plotting</span>
+        <span class="c1"># is optional and doesn&#39;t require matplotlib.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">historique</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Aucun historique disponible pour tracer les positions.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Collect all vehicle ids and sorted time steps</span>
+        <span class="n">temps</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="s2">&quot;temps&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">historique</span><span class="p">]</span>
+        <span class="n">vehicules_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">historique</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">vid</span> <span class="ow">in</span> <span class="n">s</span><span class="p">[</span><span class="s2">&quot;positions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">vid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                    <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vid</span><span class="p">)</span>
+                    <span class="n">vehicules_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vid</span><span class="p">)</span>
+
+        <span class="n">out_path</span> <span class="o">=</span> <span class="s2">&quot;data/positions.csv&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">csvfile</span><span class="p">)</span>
+            <span class="c1"># Header: time + vehicle ids</span>
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="s2">&quot;temps&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">vehicules_ids</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">historique</span><span class="p">:</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="s2">&quot;temps&quot;</span><span class="p">]]</span>
+                <span class="k">for</span> <span class="n">vid</span> <span class="ow">in</span> <span class="n">vehicules_ids</span><span class="p">:</span>
+                    <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s2">&quot;positions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">vid</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Positions exportées vers </span><span class="si">{</span><span class="n">out_path</span><span class="si">}</span><span class="s2"> (CSV). Use your preferred plotting tool to visualize it.&quot;</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">simulateur_trafic</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Project modules</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

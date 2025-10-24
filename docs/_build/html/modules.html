@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Project modules &#8212; simulateur_trafic  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Indices and tables" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-core">
+<span id="project-modules"></span><h1>Project modules<a class="headerlink" href="#module-core" title="Link to this heading">¶</a></h1>
+<p>Package core: contient le simulateur et l’analyseur du projet.</p>
+<p>API principale:
+- Simulateur: classe principale contrôlant la simulation
+- Analyseur: calculer des statistiques simples sur le réseau</p>
+<dl class="py class" id="module-core.simulateur">
+<dt class="sig sig-object py" id="core.simulateur.Simulateur">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.simulateur.</span></span><span class="sig-name descname"><span class="pre">Simulateur</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fichier_config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/simulateur.html#Simulateur"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.simulateur.Simulateur" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Simulateur principal.</p>
+<p>Gère le réseau routier, l’avancement du temps, l’analyse et l’export des
+résultats. Charge une configuration JSON décrivant les routes et
+véhicules.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="core.simulateur.Simulateur.lancer_simulation">
+<span class="sig-name descname"><span class="pre">lancer_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_tours</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/simulateur.html#Simulateur.lancer_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.simulateur.Simulateur.lancer_simulation" title="Link to this definition">¶</a></dt>
+<dd><p>Exécute la simulation pendant <cite>n_tours</cite> incréments de <cite>delta_t</cite>.</p>
+<p>À chaque tour:
+- avance le temps
+- met à jour les véhicules sur chaque route
+- calcule des statistiques via l’analyseur
+- affiche l’état
+- enregistre un snapshot des positions dans l’historique</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_tours</strong> (<em>int</em>) – nombre de pas de simulation à exécuter.</p></li>
+<li><p><strong>delta_t</strong> (<em>float</em>) – durée (en secondes) d’un pas de simulation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="core.simulateur.Simulateur.tracer_positions">
+<span class="sig-name descname"><span class="pre">tracer_positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/simulateur.html#Simulateur.tracer_positions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.simulateur.Simulateur.tracer_positions" title="Link to this definition">¶</a></dt>
+<dd><p>Exporte les positions des véhicules au format CSV.</p>
+<p>Le fichier produit contient une colonne ‘temps’ suivie d’une colonne par
+véhicule (identifiée par son id). Ce jeu de données peut ensuite être
+visualisé avec l’outil de votre choix.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-core.analyseur">
+<dt class="sig sig-object py" id="core.analyseur.Analyseur">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.analyseur.</span></span><span class="sig-name descname"><span class="pre">Analyseur</span></span><a class="reference internal" href="_modules/core/analyseur.html#Analyseur"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.analyseur.Analyseur" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Classe simple d’analyse du réseau.</p>
+<p>Fournit des méthodes pour calculer des statistiques basiques sur le réseau
+(nombre de véhicules, liste des vitesses et vitesse moyenne).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="core.analyseur.Analyseur.analyser">
+<span class="sig-name descname"><span class="pre">analyser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reseau</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/analyseur.html#Analyseur.analyser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.analyseur.Analyseur.analyser" title="Link to this definition">¶</a></dt>
+<dd><p>Analyse l’état du <cite>reseau</cite> et renvoie des statistiques.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reseau</strong> – instance de <cite>ReseauRoutier</cite> contenant les routes et véhicules.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>clés: ‘nb_vehicules’, ‘vitesses’, ‘moyenne_vitesse’.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-models.reseau">
+<dt class="sig sig-object py" id="models.reseau.ReseauRoutier">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.reseau.</span></span><span class="sig-name descname"><span class="pre">ReseauRoutier</span></span><a class="reference internal" href="_modules/models/reseau.html#ReseauRoutier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.reseau.ReseauRoutier" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Représente l’ensemble des routes composant le réseau.</p>
+<p>Fournit des méthodes pour ajouter des routes, récupérer une route par nom
+et obtenir un état synthétique du réseau.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="models.reseau.ReseauRoutier.ajouter_route">
+<span class="sig-name descname"><span class="pre">ajouter_route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">route</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/reseau.html#ReseauRoutier.ajouter_route"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.reseau.ReseauRoutier.ajouter_route" title="Link to this definition">¶</a></dt>
+<dd><p>Ajoute une instance <cite>Route</cite> au réseau.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>route</strong> (<a class="reference internal" href="#models.route.Route" title="models.route.Route"><em>Route</em></a>) – instance à ajouter.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.reseau.ReseauRoutier.get_route">
+<span class="sig-name descname"><span class="pre">get_route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nom</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/reseau.html#ReseauRoutier.get_route"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.reseau.ReseauRoutier.get_route" title="Link to this definition">¶</a></dt>
+<dd><p>Retourne la route nommée <cite>nom</cite> ou None si elle n’existe pas.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.reseau.ReseauRoutier.etat_reseau">
+<span class="sig-name descname"><span class="pre">etat_reseau</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/reseau.html#ReseauRoutier.etat_reseau"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.reseau.ReseauRoutier.etat_reseau" title="Link to this definition">¶</a></dt>
+<dd><p>Retourne un dictionnaire résumant la position des véhicules par route.</p>
+<dl class="simple">
+<dt>Format:</dt><dd><p>{ nom_route: [(vehicule_id, position_approchee), …], … }</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-models.route">
+<dt class="sig sig-object py" id="models.route.Route">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.route.</span></span><span class="sig-name descname"><span class="pre">Route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longueur</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limite_vitesse</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/route.html#Route"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.route.Route" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Représente une route du réseau.</p>
+<dl class="simple">
+<dt>Attributs principaux:</dt><dd><p>nom (str): nom de la route
+longueur (float): longueur en mètres
+limite_vitesse (float): limite de vitesse
+vehicules (list): véhicules présents sur la route</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="models.route.Route.ajouter_vehicule">
+<span class="sig-name descname"><span class="pre">ajouter_vehicule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vehicule</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/route.html#Route.ajouter_vehicule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.route.Route.ajouter_vehicule" title="Link to this definition">¶</a></dt>
+<dd><p>Ajoute un véhicule à la route.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.route.Route.mettre_a_jour_vehicules">
+<span class="sig-name descname"><span class="pre">mettre_a_jour_vehicules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/route.html#Route.mettre_a_jour_vehicules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.route.Route.mettre_a_jour_vehicules" title="Link to this definition">¶</a></dt>
+<dd><p>Met à jour la position de chaque véhicule pour un pas <cite>delta_t</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-models.vehicule">
+<dt class="sig sig-object py" id="models.vehicule.Vehicule">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.vehicule.</span></span><span class="sig-name descname"><span class="pre">Vehicule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifiant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">route</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vitesse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/vehicule.html#Vehicule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.vehicule.Vehicule" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Représente un véhicule dans la simulation.</p>
+<dl class="simple">
+<dt>Attributs:</dt><dd><p>id (str): identifiant unique du véhicule
+route (Route): route sur laquelle il circule
+position (float): position actuelle en mètres
+vitesse (float): vitesse actuelle en mètres/seconde</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="models.vehicule.Vehicule.avancer">
+<span class="sig-name descname"><span class="pre">avancer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta_t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/vehicule.html#Vehicule.avancer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.vehicule.Vehicule.avancer" title="Link to this definition">¶</a></dt>
+<dd><p>Fait avancer le véhicule en fonction de sa vitesse pendant <cite>delta_t</cite>.</p>
+<p>La position est bornée par la longueur de la route.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.vehicule.Vehicule.changer_de_route">
+<span class="sig-name descname"><span class="pre">changer_de_route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nouvelle_route</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/vehicule.html#Vehicule.changer_de_route"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#models.vehicule.Vehicule.changer_de_route" title="Link to this definition">¶</a></dt>
+<dd><p>Change la route du véhicule et réinitialise sa position à 0.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-io_pkg.affichage">
+<dt class="sig sig-object py" id="io_pkg.affichage.Affichage">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">io_pkg.affichage.</span></span><span class="sig-name descname"><span class="pre">Affichage</span></span><a class="reference internal" href="_modules/io_pkg/affichage.html#Affichage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#io_pkg.affichage.Affichage" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Composant d’affichage minimal pour la simulation.</p>
+<p>Fournit une méthode <cite>afficher_etat</cite> qui affiche sur la sortie standard
+une représentation textuelle de l’état du réseau et des statistiques.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="io_pkg.affichage.Affichage.afficher_etat">
+<span class="sig-name descname"><span class="pre">afficher_etat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reseau</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_pkg/affichage.html#Affichage.afficher_etat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#io_pkg.affichage.Affichage.afficher_etat" title="Link to this definition">¶</a></dt>
+<dd><p>Affiche l’état courant de la simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>temps</strong> (<em>float</em>) – temps simulé (s).</p></li>
+<li><p><strong>reseau</strong> (<a class="reference internal" href="#models.reseau.ReseauRoutier" title="models.reseau.ReseauRoutier"><em>ReseauRoutier</em></a>) – instance contenant les routes et véhicules.</p></li>
+<li><p><strong>stats</strong> (<em>dict</em>) – statistiques calculées par l’analyseur.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-io_pkg.export">
+<dt class="sig sig-object py" id="io_pkg.export.Export">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">io_pkg.export.</span></span><span class="sig-name descname"><span class="pre">Export</span></span><a class="reference internal" href="_modules/io_pkg/export.html#Export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#io_pkg.export.Export" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Export simple de résultats au format JSON.</p>
+<p>Méthode <cite>exporter_resultats</cite> écrit les statistiques fournies dans un
+fichier JSON indenté.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="io_pkg.export.Export.exporter_resultats">
+<span class="sig-name descname"><span class="pre">exporter_resultats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fichier</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/io_pkg/export.html#Export.exporter_resultats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#io_pkg.export.Export.exporter_resultats" title="Link to this definition">¶</a></dt>
+<dd><p>Écrit <cite>stats</cite> dans <cite>fichier</cite> au format JSON.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stats</strong> (<em>dict</em>) – dictionnaire de statistiques à sauvegarder.</p></li>
+<li><p><strong>fichier</strong> (<em>str</em>) – chemin du fichier de sortie.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">simulateur_trafic</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Project modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#core.simulateur.Simulateur"><code class="docutils literal notranslate"><span class="pre">Simulateur</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core.analyseur.Analyseur"><code class="docutils literal notranslate"><span class="pre">Analyseur</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.reseau.ReseauRoutier"><code class="docutils literal notranslate"><span class="pre">ReseauRoutier</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.route.Route"><code class="docutils literal notranslate"><span class="pre">Route</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models.vehicule.Vehicule"><code class="docutils literal notranslate"><span class="pre">Vehicule</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#io_pkg.affichage.Affichage"><code class="docutils literal notranslate"><span class="pre">Affichage</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#io_pkg.export.Export"><code class="docutils literal notranslate"><span class="pre">Export</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Indices and tables</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/modules.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

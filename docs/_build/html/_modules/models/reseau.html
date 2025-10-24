@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>models.reseau &#8212; simulateur_trafic  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for models.reseau</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="ReseauRoutier">
+<a class="viewcode-back" href="../../modules.html#models.reseau.ReseauRoutier">[docs]</a>
+<span></span><span class="k">class</span><span class="w"> </span><span class="nc">ReseauRoutier</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Représente l&#39;ensemble des routes composant le réseau.</span>
+
+<span class="sd">    Fournit des méthodes pour ajouter des routes, récupérer une route par nom</span>
+<span class="sd">    et obtenir un état synthétique du réseau.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise un réseau vide (sans routes).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">routes</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="ReseauRoutier.ajouter_route">
+<a class="viewcode-back" href="../../modules.html#models.reseau.ReseauRoutier.ajouter_route">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ajouter_route</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">route</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ajoute une instance `Route` au réseau.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            route (Route): instance à ajouter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">routes</span><span class="p">[</span><span class="n">route</span><span class="o">.</span><span class="n">nom</span><span class="p">]</span> <span class="o">=</span> <span class="n">route</span></div>
+
+
+<div class="viewcode-block" id="ReseauRoutier.get_route">
+<a class="viewcode-back" href="../../modules.html#models.reseau.ReseauRoutier.get_route">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_route</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nom</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retourne la route nommée `nom` ou None si elle n&#39;existe pas.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nom</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReseauRoutier.etat_reseau">
+<a class="viewcode-back" href="../../modules.html#models.reseau.ReseauRoutier.etat_reseau">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">etat_reseau</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retourne un dictionnaire résumant la position des véhicules par route.</span>
+
+<span class="sd">        Format:</span>
+<span class="sd">            { nom_route: [(vehicule_id, position_approchee), ...], ... }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">etat</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">nom</span><span class="p">,</span> <span class="n">route</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">routes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">etat</span><span class="p">[</span><span class="n">nom</span><span class="p">]</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">route</span><span class="o">.</span><span class="n">vehicules</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">etat</span></div>
+</div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">simulateur_trafic</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Project modules</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
