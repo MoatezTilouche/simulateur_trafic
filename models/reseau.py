@@ -1,3 +1,6 @@
+from exceptions import RouteInexistanteException
+
+
 class ReseauRoutier:
     """Représente l'ensemble des routes composant le réseau.
 
@@ -18,8 +21,22 @@ class ReseauRoutier:
         self.routes[route.nom] = route
 
     def get_route(self, nom):
-        """Retourne la route nommée `nom` ou None si elle n'existe pas."""
-        return self.routes.get(nom)
+        """Retourne la route nommée `nom` ou lève une exception si elle n'existe pas.
+        
+        Args:
+            nom (str): Nom de la route recherchée.
+            
+        Returns:
+            Route: La route correspondante.
+            
+        Raises:
+            RouteInexistanteException: Si la route n'existe pas dans le réseau.
+        """
+        route = self.routes.get(nom)
+        if route is None:
+            routes_disponibles = list(self.routes.keys())
+            raise RouteInexistanteException(nom, routes_disponibles)
+        return route
 
     def etat_reseau(self):
         """Retourne un dictionnaire résumant la position des véhicules par route.

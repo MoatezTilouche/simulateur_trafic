@@ -1,8 +1,14 @@
 from models import ReseauRoutier, Route, Vehicule
 from core.analyseur import Analyseur
 from io_pkg import Affichage, Export
+from exceptions import (
+    FichierConfigurationException,
+    IterationsInvalidesException,
+    RouteInexistanteException
+)
 import json
 import csv
+import os
 
 class Simulateur:
     """Simulateur principal.
@@ -18,6 +24,10 @@ class Simulateur:
         Args:
             fichier_config (str): chemin vers un fichier JSON contenant
                 les routes et véhicules à instancier.
+                
+        Raises:
+            FichierConfigurationException: Si le fichier est manquant ou invalide.
+            RouteInexistanteException: Si un véhicule référence une route inexistante.
         """
         self.reseau = ReseauRoutier()
         self.temps = 0
@@ -26,18 +36,81 @@ class Simulateur:
         self.exporteur = Export()
         self.historique = []
 
-        # Charger configuration
-        with open(fichier_config, "r") as f:
-            config = json.load(f)
+        # Charger configuration avec gestion des erreurs
+        try:
+            # Vérifier que le fichier existe
+            if not os.path.exists(fichier_config):
+                raise FileNotFoundError(f"Le fichier '{fichier_config}' n'existe pas")
+            
+            with open(fichier_config, "r", encoding="utf-8") as f:
+                config = json.load(f)
+                
+        except FileNotFoundError as e:
+            raise FichierConfigurationException(fichier_config, str(e)) from e
+        except json.JSONDecodeError as e:
+            raise FichierConfigurationException(
+                fichier_config, 
+                f"Format JSON invalide: {str(e)}"
+            ) from e
+        except Exception as e:
+            raise FichierConfigurationException(
+                fichier_config, 
+                f"Erreur lors de la lecture: {str(e)}"
+            ) from e
 
-        for r in config["routes"]:
-            route = Route(r["nom"], r["longueur"], r["limite_vitesse"])
-            self.reseau.ajouter_route(route)
+        # Charger les routes
+        try:
+            if "routes" not in config:
+                raise FichierConfigurationException(
+                    fichier_config,
+                    "La clé 'routes' est manquante dans la configuration"
+                )
+            
+            for r in config["routes"]:
+                route = Route(r["nom"], r["longueur"], r["limite_vitesse"])
+                self.reseau.ajouter_route(route)
+                
+        except KeyError as e:
+            raise FichierConfigurationException(
+                fichier_config,
+                f"Clé manquante dans la définition d'une route: {str(e)}"
+            ) from e
+        except Exception as e:
+            raise FichierConfigurationException(
+                fichier_config,
+                f"Erreur lors de la création des routes: {str(e)}"
+            ) from e
 
-        for v in config["vehicules"]:
-            route = self.reseau.get_route(v["route"])
-            vehicule = Vehicule(v["id"], route, v["position"], v["vitesse"])
-            route.ajouter_vehicule(vehicule)
+        # Charger les véhicules
+        try:
+            if "vehicules" not in config:
+                raise FichierConfigurationException(
+                    fichier_config,
+                    "La clé 'vehicules' est manquante dans la configuration"
+                )
+            
+            for v in config["vehicules"]:
+                try:
+                    route = self.reseau.get_route(v["route"])
+                    vehicule = Vehicule(v["id"], route, v["position"], v["vitesse"])
+                    route.ajouter_vehicule(vehicule)
+                except RouteInexistanteException:
+                    raise
+                except KeyError as e:
+                    raise FichierConfigurationException(
+                        fichier_config,
+                        f"Clé manquante dans la définition du véhicule {v.get('id', '?')}: {str(e)}"
+                    ) from e
+                    
+        except RouteInexistanteException:
+            raise
+        except FichierConfigurationException:
+            raise
+        except Exception as e:
+            raise FichierConfigurationException(
+                fichier_config,
+                f"Erreur lors de la création des véhicules: {str(e)}"
+            ) from e
 
     def lancer_simulation(self, n_tours, delta_t):
         """Exécute la simulation pendant `n_tours` incréments de `delta_t`.
@@ -52,9 +125,60 @@ class Simulateur:
         Args:
             n_tours (int): nombre de pas de simulation à exécuter.
             delta_t (float): durée (en secondes) d'un pas de simulation.
+            
+        Raises:
+            IterationsInvalidesException: Si n_tours est invalide (<= 0).
+            ValueError: Si delta_t est invalide (<= 0).
         """
-        for _ in range(n_tours):
-            self.temps += delta_t
+        # Validation des paramètres
+        if not isinstance(n_tours, int) or n_tours <= 0:
+            raise IterationsInvalidesException(n_tours)
+        
+        if not isinstance(delta_t, (int, float)) or delta_t <= 0:
+            raise ValueError(f"delta_t doit être un nombre strictement positif, reçu: {delta_t}")
+        
+        try:
+            for tour in range(n_tours):
+                self.temps += delta_t
+                
+                # Mise à jour des véhicules sur chaque route
+                for route in self.reseau.routes.values():
+                    try:
+                        route.mettre_a_jour_vehicules(delta_t)
+                    except Exception as e:
+                        print(f"⚠️  Avertissement au tour {tour + 1}: Erreur sur la route {route.nom}: {e}")
+                        # On continue la simulation malgré l'erreur sur une route
+
+                # Analyse et affichage
+                try:
+                    stats = self.analyseur.analyser(self.reseau)
+                    self.affichage.afficher_etat(self.temps, self.reseau, stats)
+                except Exception as e:
+                    print(f"⚠️  Avertissement: Erreur lors de l'analyse au temps {self.temps}s: {e}")
+                    stats = {"nb_vehicules": 0, "vitesses": [], "moyenne_vitesse": 0}
+
+                # Enregistrement de l'historique
+                snapshot = {"temps": self.temps, "positions": {}}
+                for route in self.reseau.routes.values():
+                    for v in route.vehicules:
+                        snapshot["positions"][v.id] = v.position
+                self.historique.append(snapshot)
+
+            # Export des résultats finaux
+            try:
+                self.exporteur.exporter_resultats(stats, "data/resultats.json")
+            except Exception as e:
+                print(f"⚠️  Avertissement: Impossible d'exporter les résultats: {e}")
+                
+        except (IterationsInvalidesException, ValueError):
+            # Re-lever les exceptions de validation
+            raise
+        except KeyboardInterrupt:
+            print("\n⚠️  Simulation interrompue par l'utilisateur")
+            raise
+        except Exception as e:
+            print(f"❌ Erreur critique lors de la simulation: {e}")
+            raise
             for route in self.reseau.routes.values():
                 route.mettre_a_jour_vehicules(delta_t)
 
