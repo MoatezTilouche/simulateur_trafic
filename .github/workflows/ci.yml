@@ -18,6 +18,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install poetry
       - name: Install dependencies
-        run: python -m poetry install
+        run: python -m poetry install --no-interaction --no-ansi
+
+      - name: Show installed packages (debug)
+        run: python -m poetry run python -m pip list
+
       - name: Run tests
-        run: python -m poetry run pytest --cov=simulateur_trafic --cov-report=term-missing
+        # Run pytest as a module inside the poetry-run environment to avoid relying
+        # on console entrypoints (some runners may not have script shims on PATH).
+        run: python -m poetry run python -m pytest --cov=simulateur_trafic --cov-report=term-missing
